@@ -113,4 +113,56 @@ self.addExperiment(forKey: "some_exp", as: String.self) { object, value in
 }
 ``` 
 
-# How to install
+# Installation
+## In your project root 
+1. Create "Modules" folder. 
+2. Clone this repo inside "Modules" folder.
+ 
+## In your [Podfile]:
+
+3. Remove or comment 
+```ruby
+use_frameworks!
+```
+
+4. Add this 
+```ruby
+target "Change Me!" do
+  pod "'ExperimentKit'", :path => '../'
+end
+```
+
+4(alternative). Or this
+```ruby
+def local_pod(name, **kwargs)
+    kwargs[:path] = "./Modules/#{name}"
+    pod name, kwargs
+end
+
+target 'Change Me!' do
+    local_pod 'ExperimentKit'
+end
+```
+
+5. run 
+
+```bash
+pod install
+```
+
+```bash
+pod update
+```
+
+## In Xcode project 
+
+6. import framework & configure it (Firebase example) inside AppDelegate's didFinishLaunchingWithOptions method. 
+
+```swift
+let configuration = FirebaseConfigurationProvider()
+ExperimentManager.shared.configure(configurationProvider: configuration)
+``` 
+
+7. add **GoogleService-Info.plist** from console.firebase.google.com and create **RemoteConfigDefaults.plist** file. 
+
+8. Start working
