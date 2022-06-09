@@ -5,14 +5,13 @@ public final class ExperimentManager {
     // MARK: - Properties
     
     public static let shared = ExperimentManager()
-    private static var activated = false
-    
+    static var activated = false
     private var configurationProvider: ExperimentConfigurationProvider?
-    
+    private var experimentQueue: [() -> ()] = []
     
     // MARK: - Lifecycle
     
-    init() {}
+    private init() {}
     
     // MARK: - Public
     
@@ -20,14 +19,19 @@ public final class ExperimentManager {
         guard ExperimentManager.activated == false else { return }
         self.configurationProvider = configurationProvider
         configurationProvider.setup()
-        ExperimentManager.activated = true
     }
     
     func executeExperiment<T: Decodable>(experiment: Experiment<T>) {
         guard
-            ExperimentManager.activated,
             let configurationProvider = configurationProvider
         else { return }
-        configurationProvider.execute(experiment)
+        let action = {
+            configurationProvider.execute(experiment)
+        }
+        ExperimentManager.activated ? action() : experimentQueue.append(action)
+    }
+    
+    func executeQueue() {
+        experimentQueue.forEach { $0() }
     }
 }

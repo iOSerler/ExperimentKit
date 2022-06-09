@@ -11,7 +11,8 @@ Pod::Spec.new do |spec|
   spec.source = { :git => "local", :tag => "#{spec.version}" }
 
   spec.prefix_header_file = false
-  spec.ios.deployment_target = '11.0'
+  spec.ios.deployment_target = '9.0'
+  spec.static_framework = true
 
   spec.source_files = [
     'ExperimentKit/**/*.{swift,h,m}'
@@ -20,9 +21,4 @@ Pod::Spec.new do |spec|
   spec.dependency 'Firebase/Core'
   spec.dependency 'Firebase/RemoteConfig'
   
-  spec.xcconfig = {
-    'HEADER_SEARCH_PATHS' => [
-      '"${PODS_ROOT}/Headers/Public/Firebase"'
-    ]
-  }
 end

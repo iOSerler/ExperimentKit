@@ -6,33 +6,40 @@ public final class FirebaseConfigurationProvider: ExperimentConfigurationProvide
     
     // MARK: - Properties
     
-    private var remoteConfig: RemoteConfig!
-    
     public lazy var developerMode: Bool = false {
         willSet {
+            guard let remoteConfig = remoteConfig else {return}
             let interval: TimeInterval
             interval = newValue == true ? 0 : 30
-            let settings = RemoteConfigSettings()
-            settings.minimumFetchInterval = interval
-            remoteConfig.configSettings = settings
+            remoteConfig.configSettings.minimumFetchInterval = interval
+//            settings.minimumFetchInterval = interval
+//            remoteConfig.configSettings = settings
         }
     }
+    
+    private var remoteConfig: RemoteConfig!
+    
     
     // MARK: - Lifecycle
     
     public init() {}
     
+    // MARK: - Public
+    
     public func setup() {
-        FirebaseApp.configure()
         remoteConfig = RemoteConfig.remoteConfig()
-        remoteConfig.configSettings = RemoteConfigSettings.init()
+        let settings = RemoteConfigSettings.init()
+        settings.minimumFetchInterval = 0
+        remoteConfig.configSettings = settings
         remoteConfig.setDefaults(fromPlist: "RemoteConfigDefaults")
         
-        remoteConfig.fetch(withExpirationDuration: TimeInterval(0)) { (status, error) -> Void in
+        remoteConfig.fetch() { (status, error) -> Void in
             if status == .success {
                 print("Config fetched!")
                 self.remoteConfig.activate { completion, error  in
                     guard error == nil else { return }
+                    ExperimentManager.activated = true
+                    ExperimentManager.shared.executeQueue()
                 }
             } else {
                 print("Config not fetched")
@@ -58,6 +65,7 @@ public final class FirebaseConfigurationProvider: ExperimentConfigurationProvide
         
         if let experiment = experiment as? Experiment<NSNumber> {
             let value = remoteConfig[experiment.key].numberValue
+            guard let value = value else { return }
             experiment.execute(with: value)
             return
         }
